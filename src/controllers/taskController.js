@@ -1,7 +1,7 @@
-const Task = require('../models/task');
+const Task = require('../models/taskSchema');
 const redisClient = require('../middleware/cache');
 
-// Fetch All Tasks (with caching)
+//get all task
 exports.getTasks = async (req, res) => {
     try {
         redisClient.get('tasks', async (err, tasks) => {
@@ -16,14 +16,14 @@ exports.getTasks = async (req, res) => {
     }
 };
 
-// Create a Task
+//create task
 exports.createTask = async (req, res) => {
     const { title, description } = req.body;
     try {
         const newTask = new Task({ title, description, user: req.user.id });
         await newTask.save();
 
-        // Cache Invalidation
+     
         redisClient.del('tasks');
         res.status(201).json(newTask);
     } catch (err) {
@@ -31,13 +31,13 @@ exports.createTask = async (req, res) => {
     }
 };
 
-// Delete a Task
+//delete task
 exports.deleteTask = async (req, res) => {
     const { id } = req.params;
     try {
         await Task.findByIdAndDelete(id);
 
-        // Cache Invalidation
+       
         redisClient.del('tasks');
         res.status(200).json({ message: 'Task deleted successfully' });
     } catch (err) {
